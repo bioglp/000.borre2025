@@ -1,0 +1,10 @@
+---
+title: "Index"
+format: html
+---
+
+- 2025-11-06
+    - prima bozza di elaborazione condivisa
+
+- 2025-10-11
+    - ristrutturazione file input per elaborazione della dieta
