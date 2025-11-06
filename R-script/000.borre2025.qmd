@@ -1,0 +1,293 @@
+---
+title: "Borre2025"
+date: October 2025
+format: 
+  html:
+    theme: cosmo
+    code-fold: true
+    code-fold-default: true
+    toc: true
+editor_options: 
+  chunk_output_type: console
+echo: FALSE
+warning: FALSE
+---
+
+```{r}
+dir.create('input', showWarnings = FALSE)
+	#dir.create('output', showWarnings = FALSE)
+	#dir.create('plots', showWarnings = FALSE)
+dir.create('R-script', showWarnings = FALSE)
+library(pacman)
+p_load(tidyverse,stargazer,skimr,janitor,lubridate,here,
+       scales,ggpubr,rstatix,openxlsx, patchwork)
+theme_set(theme_bw(base_size = 14))
+	# -------------------------------------
+```
+
+# Analisi dieta
+
+Elenco variabili nel dataset. Il dataset iniziale è stato riorganizzato da wide a long creando anche le variabili Taxon e Gruppo. Ogni preda è ora rappresentata in una singola riga.
+```{r}
+# import data
+# br %>%  
+# pivot_longer(cols=Attribuzione.1:Attribuzione.6,
+#              names_to = 'SpecieAtt', 
+#              values_to = 'SpeciePredata' ) %>% 
+#   filter(!is.na(SpeciePredata))
+# write.xlsx(br,'input/Borre2025.xlsx')
+
+br <- read.xlsx(here('input/Borre2025.xlsx'), detectDates = T)
+glimpse(br)
+br <- br %>%
+  mutate(Stagione = factor(Stagione,
+                           levels = c("Inverno", 
+                                      "Primavera", 
+                                      "Estate", 
+                                      "Autunno")),
+         month=month(Data),
+         year=year(Data))
+```
+
+## Differenze tra gli anni
+
+Frequenza percentuale delle diverse tipologie di prede nel corso delle stagioni.
+```{r}
+df.y <- br %>% 
+  group_by(year, Stagione, Gruppo) %>% 
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(Gruppo = if_else(n < 5, "Others", Gruppo)) %>% 
+  group_by(year, Stagione,Gruppo) %>% 
+  summarise(n = sum(n), .groups = "drop") %>% 
+  group_by(year, Stagione) %>% 
+  mutate(p=n/sum(n))
+
+df.y %>% 
+  ggplot(aes(Stagione,p,fill=Gruppo))+
+  geom_col()+
+  scale_y_continuous(labels = percent_format())+
+  facet_grid(~year)+
+    labs(fill='',x='',y='')+
+    theme(legend.position = 'top')
+```
+
+Conclusione: ragionevolmente si può pensare che ci sia una somiglianza tra gli anni.
+
+## Analisi stagionalità
+
+Eliminazione della variabile anno e considerazione del mese per la creazione di un ciclo annuale (mensile e stagionale) a diversi livelli tassonimici.
+```{r}
+#head(br)
+# Livello tassonomico più alto
+df.m <- br %>% 
+  group_by(month, Gruppo) %>% 
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(Gruppo = if_else(n < 5, "Others", Gruppo)) %>% 
+  group_by(month,Gruppo) %>% 
+  summarise(n = sum(n), .groups = "drop") %>% 
+  group_by(month) %>% 
+  mutate(p=n/sum(n))
+
+df.m %>% 
+  ggplot(aes(as.factor(month),p,fill=Gruppo))+
+  geom_col()+
+  scale_y_continuous(labels = percent_format())+
+    labs(x='\nMonth',y='',fill='')+
+    theme(legend.position = 'top')
+
+df.g <- br %>% 
+  group_by(Stagione, Gruppo) %>% 
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(Gruppo = if_else(n < 5, "Others", Gruppo)) %>% 
+  group_by(Stagione,Gruppo) %>% 
+  summarise(n = sum(n), .groups = "drop") %>% 
+  group_by(Stagione) %>% 
+  mutate(p=n/sum(n))
+  
+df.g %>% 
+  ggplot(aes(Stagione,p,fill=Gruppo))+
+  geom_col()+
+  scale_y_continuous(labels = percent_format())+
+    labs(x='',y='',fill='')+
+    theme(legend.position = 'top')
+
+# Livello tassonomico più basso
+df.t <- br %>% 
+  group_by(Stagione, Taxon) %>% 
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(Taxon = if_else(n < 5, "Others", Taxon)) %>% 
+  group_by(Stagione,Taxon) %>% 
+  summarise(n = sum(n), .groups = "drop") %>% 
+  group_by(Stagione) %>% 
+  mutate(p=n/sum(n))
+
+df.t %>% 
+  ggplot(aes(Stagione,p,fill=Taxon))+
+  geom_col()+
+  scale_y_continuous(labels = percent_format())+
+    labs(x='',y='',fill='')+
+    theme(legend.position = 'top')
+```
+
+Probabilmente il livello più alto è sufficientemente rappresentativo. L'analisi di dettaglio si può condurre senza grafico di supporto. Eventualmente con un grafico in mat. suppl.
+
+```{r}
+p1 <- df.g %>%
+  ggplot(aes(Stagione,Gruppo,size=p*100))+
+    geom_point()+labs(x='',y='')+
+    #geom_text(aes(label = round(p*100,1)),col='white')+
+  theme(legend.position = 'top',
+        axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5,
+                                   hjust = 1))+
+    labs(size='')
+
+p2 <- df.t %>%
+  ggplot(aes(Stagione,Taxon,size=p*100))+
+    geom_point()+labs(x='',y='')+
+        #geom_text(aes(label = p),col='white')+
+  theme(legend.position = 'none',
+        axis.text.x = element_text(angle = 90,
+                                   vjust = 0.5,
+                                   hjust = 1))+
+    labs(size='')
+
+p1+p2
+```
+
+## Test del chi-sq
+Confronto della dieta nelle 4 stagioni.
+```{r chisq}
+tab <- xtabs(n ~ Stagione + Gruppo, data = df.g)
+tab
+res <- chisq.test(tab)
+res
+```
+Le differenze tra le stagioni sono statisticamente significative.
+
+
+```{r geom_tile}
+df_res <- as.data.frame(as.table(res$stdres))
+colnames(df_res) <- c("Stagione", "Gruppo", "Residuo")
+
+ggplot(df_res, aes(Gruppo, Stagione, fill = Residuo)) +
+  geom_tile() + labs(x='',y='')+
+  scale_fill_gradient2(low = "red", mid = "white", high = "forestgreen") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+I residui positivi indicano una preferenza.
+
+```{r ca, fig.width=7, fig.heigth=7}
+#| warnings: FALSE
+#| echo: FALSE
+library("FactoMineR")
+library("factoextra")
+res.ca <- CA(tab, graph = FALSE)
+fviz_ca_biplot(res.ca)
+```
+
+# Biometrie borre
+
+```{r importBorre}
+br <- read.xlsx(here('input/Dati Borre Madonna della Stella PREDE NON ELENCO.xlsx'), detectDates = T)
+br <- br %>%
+  mutate(Stagione = factor(Stagione,
+                           levels = c("Inverno", 
+                                      "Primavera", 
+                                      "Estate", 
+                                      "Autunno")),
+         month=month(Data),
+         year=year(Data))
+```
+
+Dato mensile
+```{r int-est-mesi, fig.width=11, fig.heigth=7}
+p01 <- br %>% 
+  ggplot(aes(month,Peso.in.grammi,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Weight (g)', x='',y='')+
+  scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'none')
+
+p02 <- br %>% 
+  ggplot(aes(month,Lunghezza.in.cm,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Length (cm)', x='',y='')+
+  scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'bottom')
+
+p03 <- br %>% 
+  ggplot(aes(month,Larghezza.in.cm,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Width (cm)', x='',y='')+
+  scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'none')
+
+p01+p02+p03
+```
+
+Dato stagionale
+```{r int-est-Stag, fig.width=11, fig.heigth=7}
+p1 <- br %>% 
+  ggplot(aes(Stagione,Peso.in.grammi,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Weight (g)', x='',y='')+
+  scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'none')
+
+p2 <- br %>% 
+  ggplot(aes(Stagione,Lunghezza.in.cm,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Length (cm)', x='',y='')+
+  scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'bottom')
+
+p3 <- br %>% 
+  ggplot(aes(Stagione,Larghezza.in.cm,fill=`Interno/Esterno`))+
+  geom_col()+
+  coord_polar()+
+  labs(title = 'Width (cm)', x='',y='')+
+    scale_fill_brewer('', palette = 'Pastel1')+
+  theme(legend.position = 'none')
+
+library(patchwork)
+p1+p2+p3
+```
+
+## Correlazioni tra misure biometriche
+
+```{r correlazioni, fig.width=11, fig.heigth=11}
+br %>% 
+  select(Peso.in.grammi,Larghezza.in.cm,Lunghezza.in.cm) %>% 
+  cor_mat()
+
+br %>% 
+  select(Peso.in.grammi,Larghezza.in.cm,Lunghezza.in.cm) %>% 
+  cor_pmat()
+
+br %>% 
+  ggplot(aes(Larghezza.in.cm,Peso.in.grammi, col=Stagione))+
+    geom_smooth()+
+    geom_point()+
+    facet_wrap(~Stagione)+
+    theme(legend.position='none')
+
+br %>% 
+  ggplot(aes(Larghezza.in.cm,Lunghezza.in.cm, col=Stagione))+
+    geom_smooth()+
+    geom_point()+
+    facet_wrap(~Stagione)+
+    theme(legend.position='none')
+
+br %>% 
+  ggplot(aes(Lunghezza.in.cm, Peso.in.grammi, col=Stagione))+
+    geom_smooth()+
+    geom_point()+
+    facet_wrap(~Stagione)+
+    theme(legend.position='none')
+```
