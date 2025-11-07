@@ -155,6 +155,45 @@ p2 <- df.t %>%
 p1+p2
 ```
 
+```{r alluvial}
+library(ggalluvial)
+
+df.alluv <- br %>%
+  group_by(Stagione, Gruppo, Taxon) %>% 
+  summarise(Prede = n(), .groups = "drop") %>%
+  mutate(Taxon = if_else(Prede < 5, "Others", Taxon)) %>%
+  group_by(Gruppo, Taxon) %>%
+  mutate(Prede_tot = sum(Prede)) %>%
+  ungroup() %>%
+  mutate(
+    Gruppo = fct_reorder(Gruppo, Prede_tot, .desc = TRUE),
+    Taxon  = fct_reorder(Taxon,  Prede_tot, .desc = TRUE),
+    Stagione = factor(Stagione)
+  )
+
+ggplot(df.alluv,
+       aes(axis1 = Stagione,
+           axis2 = Gruppo,
+           axis3 = Taxon,
+           y = Prede)) +
+  scale_x_discrete(limits = c("Stagione", "Gruppo", "Taxon"),
+                   expand = c(.05, .05)) +
+  geom_alluvium(aes(fill = Gruppo), width = 1/12) +
+  geom_stratum(width = 1/8, 
+               fill = "grey85", 
+               color = "grey40") +
+  geom_text(stat = "stratum",
+            aes(label = after_stat(stratum)),
+            size = 3) +
+  labs(y = "no. Prede",
+       x = "",
+       fill = "Gruppo") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 12),
+        legend.position = 'none')
+```
+
+
 ## Test del chi-sq
 Confronto della dieta nelle 4 stagioni.
 ```{r chisq}
