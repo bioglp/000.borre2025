@@ -1,10 +1,17 @@
 ---
-title: "Index"
+title: "000.Borre2025"
 format: html
+css: css/bujo01.css
 ---
+
+
+- [ouput](https://bioglp.github.io/000.borre2025/R-script/000.borre2025.html)
 
 - 2025-11-06
     - prima bozza di elaborazione condivisa
 
 - 2025-10-11
     - ristrutturazione file input per elaborazione della dieta
+    
+- 2025-09-13
+    - invio dati
