@@ -1,6 +1,6 @@
 ---
 title: "Borre2025"
-date: October 2025
+date: 2025-10-17
 format: 
   html:
     theme: cosmo
