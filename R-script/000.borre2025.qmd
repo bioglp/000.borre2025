@@ -75,7 +75,7 @@ Conclusione: ragionevolmente si può pensare che ci sia una somiglianza tra gli 
 
 ## Analisi stagionalità
 
-Eliminazione della variabile anno e considerazione del mese per la creazione di un ciclo annuale (mensile e stagionale) a diversi livelli tassonimici.
+Eliminazione della variabile anno e considerazione del mese per la creazione di un ciclo annuale (mensile e stagionale) a diversi livelli tassonomici.
 ```{r stagioni}
 #head(br)
 # Livello tassonomico più alto
@@ -99,7 +99,7 @@ df.g <- br |>
     group_by(Stagione, Gruppo) |> 
     summarise(n = n(), .groups = "drop") |>
     mutate(Gruppo = if_else(n < 5, "Others", Gruppo)) |> 
-    group_by(Stagione,Gruppo) |> 
+    group_by(Stagione, Gruppo) |> 
     summarise(n = sum(n), .groups = "drop") |> 
     group_by(Stagione) |> 
     mutate(p=n/sum(n))
@@ -129,7 +129,7 @@ df.t |>
     theme(legend.position = 'top')
 ```
 
-Probabilmente il livello più alto è sufficientemente rappresentativo. L'analisi di dettaglio si può condurre senza grafico di supporto. Eventualmente con un grafico in mat. suppl.
+Probabilmente il livello tassonomico più alto è sufficientemente rappresentativo. L'analisi di dettaglio si può condurre senza grafico di supporto. Eventualmente con un grafico in mat. suppl.
 
 ```{r}
 p1 <- df.g |>
