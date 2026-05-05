@@ -3,11 +3,26 @@ title: "000.Borre2025"
 author: Gianandrea La Porta
 date: 2025-11-08
 format: html
-css: css/bujo01.css
+css: data/css/bujo01.css
 ---
 
 
-- [ouput](https://bioglp.github.io/000.borre2025/R-script/000.borre2025.html)
+- [ouput](https://bioglp.github.io/000.borre2025/reports/000.borre2025.html)
+
+- 2026-05-02
+    - riscrittura codice e integrazione di nuove elaborazioni
+
+- 2026-04-24
+    - invio nuovo file (da correggere per le date)
+    
+- 2026-03-06
+    - definizione livelli di analisi
+        - livello 1 tutti i taxa
+        - livello 2 solo roditori
+    - elaborazione numero di prede
+        - variazione stagionale nel n. di prede
+        - differenze tra muridi e *Microtus* nel tempo
+    - confronto con dati Gaggi Paci
 
 - 2025-11-06
     - prima bozza di elaborazione condivisa
