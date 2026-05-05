@@ -40,7 +40,7 @@ theme_set(theme_bw(base_size = 14))
 
 # Analisi dieta
 
-Il dataset comprende 2 variabili: TaxonAnalisi1 e TaxonAnalisi2 (che include solo i roditori)
+Il dataset ora comprende 2 variabili per le analisi tassonomiche: TaxonAnalisi1 e TaxonAnalisi2
 ```{r}
 # import data
 # br |>
@@ -63,7 +63,7 @@ br <- br |>
   )
 ```
 
-## Numero di prese
+## Numero di prede
 Confronto il numero di prede x stagione
 
 ```{r}
@@ -192,6 +192,7 @@ library(ggalluvial)
 df.alluv <- br |>
   group_by(Stagione, TaxonAnalisi1, TaxonAnalisi2) |>
   summarise(Prede = n(), .groups = "drop") |>
+  mutate(TaxonAnalisi2 = if_else(is.na(TaxonAnalisi2),'Others',TaxonAnalisi2)) |> 
   mutate(TaxonAnalisi2 = if_else(Prede < 5, "Others", TaxonAnalisi2)) |>
   group_by(TaxonAnalisi1, TaxonAnalisi2) |>
   mutate(Prede_tot = sum(Prede)) |>
@@ -289,8 +290,14 @@ Analisi biometrica su:
 
 ## Dato mensile
 ```{r int-est-mesi, fig.width=11, fig.heigth=7}
-brB <- distinct(br, Progressivo.Borra, month, Stagione,Data, Peso.in.grammi,Lunghezza.in.cm ,Larghezza.in.cm) |> 
+brB <- distinct(br, 
+Progressivo.Borra, 
+month, Stagione,
+Data, Peso.in.grammi,
+Lunghezza.in.cm,
+Larghezza.in.cm) |> 
   mutate(month=as.factor(month))
+
 p01 <- brB |>
   group_by(month) |> 
   summarise(weight=mean(Peso.in.grammi, na.rm = T)) |> 
