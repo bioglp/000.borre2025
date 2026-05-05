@@ -1,13 +1,12 @@
 ---
 title: "Borre2025"
-date: 2026-05-05
+date: 2025-10-17
 format: 
   html:
     theme: cosmo
     code-fold: true
     code-fold-default: true
     toc: true
-output-dir: reports
 editor_options: 
   chunk_output_type: console
 echo: FALSE
@@ -40,7 +39,7 @@ theme_set(theme_bw(base_size = 14))
 
 # Analisi dieta
 
-Il dataset ora comprende 2 variabili per le analisi tassonomiche: TaxonAnalisi1 e TaxonAnalisi2
+Elenco variabili nel dataset. Il dataset iniziale è stato riorganizzato da wide a long creando anche le variabili TaxonAnalisi2 e TaxonAnalisi1. Ogni preda è ora rappresentata in una singola riga.
 ```{r}
 # import data
 # br |>
@@ -48,9 +47,9 @@ Il dataset ora comprende 2 variabili per le analisi tassonomiche: TaxonAnalisi1 
 #              names_to = 'SpecieAtt',
 #              values_to = 'SpeciePredata' ) |>
 #   filter(!is.na(SpeciePredata))
-# write.xlsx(br,'input/Borre2025.xlsx')
+# write.xlsx(br,'.xlsx')
 
-br <- read.xlsx(here('data/DatasetGufiAggiornato.xlsx'), detectDates = T)
+br <- read.xlsx('input/DatasetGufiAggiornato.xlsx', detectDates = T)
 glimpse(br)
 br <- br |>
   mutate(
@@ -63,20 +62,31 @@ br <- br |>
   )
 ```
 
-## Numero di prede
-Confronto il numero di prede x stagione
+## Numero di prese
+Confronto il numero di prede
 
 ```{r}
-br |> 
-  group_by(Stagione, Progressivo.Borra) |> 
-  summarize(Prede=mean(Prede)) |> 
-  group_by(Stagione) |> 
-  summarize(mean=mean(Prede), sd=sd(Prede)) |> 
-  ggplot(aes(Stagione,mean))+
-    geom_pointrange(aes(ymin=mean-sd,ymax=mean+sd))+
-    labs(title = 'N medio prede per borra')+
-    stat_compare_means()
+br |>
+  distinct(Stagione, Progressivo.Borra, Prede) |>
+  group_by(Stagione) |>
+  summarise(mean = mean(Prede), sd = sd(Prede)) |>
+  ggplot(aes(Stagione, mean)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) +
+  stat_compare_means()
+
+br |>
+  distinct(Stagione, Progressivo.Borra, TaxonAnalisi1, Prede) |>
+  group_by(Stagione, TaxonAnalisi1) |>
+  summarise(mean = mean(Prede), sd = sd(Prede)) |>
+  ggplot(aes(Stagione, mean)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) +
+  stat_compare_means() +
+  facet_wrap(~TaxonAnalisi1) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
+
+Conclusione: non ci sono significative differenze nel numero di prede catturate durante l'anno.
+
 
 ## Differenze tra gli anni
 
@@ -97,7 +107,10 @@ df.y |>
   scale_y_continuous(labels = percent_format()) +
   facet_grid(~year) +
   labs(fill = '', x = '', y = '') +
-  theme(legend.position = 'top',axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  theme(
+    legend.position = 'top',
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
 ```
 
 Conclusione: ragionevolmente si può pensare che ci sia una somiglianza tra gli anni.
@@ -142,23 +155,23 @@ df.g |>
 
 # Livello tassonomico più basso
 df.t <- br |>
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
-  group_by(Stagione, TaxonAnalisi2) |>
+  group_by(Stagione, TaxonAnalisi2Analisi2) |>
   summarise(n = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi2 = if_else(n < 5, "Others", TaxonAnalisi2)) |>
-  group_by(Stagione, TaxonAnalisi2) |>
+  mutate(TaxonAnalisi2Analisi2 = if_else(n < 5, "Others", TaxonAnalisi2Analisi2)) |>
+  group_by(Stagione, TaxonAnalisi2Analisi2) |>
   summarise(n = sum(n), .groups = "drop") |>
   group_by(Stagione) |>
   mutate(p = n / sum(n))
 
 df.t |>
-  ggplot(aes(Stagione, p, fill = TaxonAnalisi2)) +
+  ggplot(aes(Stagione, p, fill = TaxonAnalisi2Analisi2)) +
   geom_col() +
   scale_y_continuous(labels = percent_format()) +
   labs(x = '', y = '', fill = '') +
   theme(legend.position = 'top')
 ```
 
+Probabilmente il livello tassonomico più alto è sufficientemente rappresentativo. L'analisi di dettaglio si può condurre senza grafico di supporto. Eventualmente con un grafico in mat. suppl.
 
 ```{r}
 p1 <- df.g |>
@@ -173,7 +186,7 @@ p1 <- df.g |>
   labs(size = '')
 
 p2 <- df.t |>
-  ggplot(aes(Stagione, TaxonAnalisi2, size = p * 100)) +
+  ggplot(aes(Stagione, TaxonAnalisi2Analisi2, size = p * 100)) +
   geom_point() +
   labs(x = '', y = '') +
   #geom_text(aes(label = p),col='white')+
@@ -190,25 +203,27 @@ p1 + p2
 library(ggalluvial)
 
 df.alluv <- br |>
-  group_by(Stagione, TaxonAnalisi1, TaxonAnalisi2) |>
+  group_by(Stagione, TaxonAnalisi1, TaxonAnalisi2Analisi2) |>
   summarise(Prede = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi2 = if_else(is.na(TaxonAnalisi2),'Others',TaxonAnalisi2)) |> 
-  mutate(TaxonAnalisi2 = if_else(Prede < 5, "Others", TaxonAnalisi2)) |>
-  group_by(TaxonAnalisi1, TaxonAnalisi2) |>
+  mutate(TaxonAnalisi2Analisi2 = if_else(Prede < 5, "Others", TaxonAnalisi2Analisi2)) |>
+  mutate(
+    TaxonAnalisi2Analisi2 = if_else(is.na(TaxonAnalisi2Analisi2), "Others", TaxonAnalisi2Analisi2)
+  ) |>
+  group_by(TaxonAnalisi1, TaxonAnalisi2Analisi2) |>
   mutate(Prede_tot = sum(Prede)) |>
   ungroup() |>
   mutate(
     TaxonAnalisi1 = fct_reorder(TaxonAnalisi1, Prede_tot, .desc = TRUE),
-    TaxonAnalisi2 = fct_reorder(TaxonAnalisi2, Prede_tot, .desc = TRUE),
+    TaxonAnalisi2Analisi2 = fct_reorder(TaxonAnalisi2Analisi2, Prede_tot, .desc = TRUE),
     Stagione = factor(Stagione)
   )
 
 ggplot(
   df.alluv,
-  aes(axis1 = Stagione, axis2 = TaxonAnalisi1, axis3 = TaxonAnalisi2, y = Prede)
+  aes(axis1 = Stagione, axis2 = TaxonAnalisi1, axis3 = TaxonAnalisi2Analisi2, y = Prede)
 ) +
   scale_x_discrete(
-    limits = c("Stagione", "TaxonAnalisi1", "TaxonAnalisi2"),
+    limits = c("Stagione", "TaxonAnalisi1", "TaxonAnalisi2Analisi2"),
     expand = c(.05, .05)
   ) +
   geom_alluvium(aes(fill = TaxonAnalisi1), width = 1 / 12) +
@@ -217,32 +232,6 @@ ggplot(
   labs(y = "no. Prede", x = "", fill = "TaxonAnalisi1") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 12), legend.position = 'none')
-```
-
-## Differenze tra muridi e *Microtus*
-
-```{r}
-br |> 
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
-  group_by(Stagione, month, TaxonAnalisi1) |>
-  summarise(n = n(), .groups = "drop") |>
-  ggplot(aes(Stagione, n, group=TaxonAnalisi1)) + 
-  geom_col(aes(fill=TaxonAnalisi1), position = 'dodge')+
-  labs(fill='')+
-  scale_fill_brewer(palette = 'Accent')+
-  theme(legend.position = 'top')
-```
-
-```{r}
-br |> 
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
-  group_by(Stagione, month, TaxonAnalisi1) |>
-  summarise(n = n(), .groups = "drop") |> 
-  ggplot(aes(as.factor(month), n, group=TaxonAnalisi1)) + 
-  geom_col(aes(fill=TaxonAnalisi1), position = 'dodge')+
-  labs(fill='', x='month')+
-  scale_fill_brewer(palette = 'Accent')+
-  theme(legend.position = 'top')
 ```
 
 
@@ -256,7 +245,6 @@ res
 ```
 
 Le differenze tra le stagioni sono statisticamente significative.
-
 
 ```{r geom_tile}
 df_res <- as.data.frame(as.table(res$stdres))
@@ -287,21 +275,23 @@ Analisi biometrica su:
 - lunghezza
 - larghezza
 
+```{r importBorre}
+brB <- br |>
+  distinct(
+    Stagione,
+    month,
+    Progressivo.Borra,
+    Peso.in.grammi,
+    Lunghezza.in.cm,
+    Larghezza.in.cm
+  )
+```
 
 ## Dato mensile
 ```{r int-est-mesi, fig.width=11, fig.heigth=7}
-brB <- distinct(br, 
-Progressivo.Borra, 
-month, Stagione,
-Data, Peso.in.grammi,
-Lunghezza.in.cm,
-Larghezza.in.cm) |> 
-  mutate(month=as.factor(month))
-
 p01 <- brB |>
-  group_by(month) |> 
-  summarise(weight=mean(Peso.in.grammi, na.rm = T)) |> 
-  ggplot(aes(month, weight)) +
+  mutate(month = as.factor(month)) |>
+  ggplot(aes(month, Peso.in.grammi)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Weight (g)', x = '', y = '') +
@@ -309,9 +299,8 @@ p01 <- brB |>
   theme(legend.position = 'none')
 
 p02 <- br |>
-    group_by(month) |> 
-  summarise(length=mean(Lunghezza.in.cm, na.rm = T)) |> 
-  ggplot(aes(month, length)) +
+  mutate(month = as.factor(month)) |>
+  ggplot(aes(month, Lunghezza.in.cm)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Length (cm)', x = '', y = '') +
@@ -319,9 +308,8 @@ p02 <- br |>
   theme(legend.position = 'bottom')
 
 p03 <- br |>
-    group_by(month) |> 
-  summarise(width=mean(Larghezza.in.cm, na.rm = T)) |> 
-    ggplot(aes(month, width)) +
+  mutate(month = as.factor(month)) |>
+  ggplot(aes(month, Larghezza.in.cm)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Width (cm)', x = '', y = '') +
@@ -333,37 +321,31 @@ p01 + p02 + p03
 
 ## Dato stagionale
 ```{r int-est-Stag, fig.width=11, fig.heigth=7}
-p01 <- brB |>
-  group_by(Stagione) |> 
-  summarise(weight=mean(Peso.in.grammi, na.rm = T)) |> 
-  ggplot(aes(Stagione, weight)) +
+p1 <- br |>
+  ggplot(aes(Stagione, Peso.in.grammi)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Weight (g)', x = '', y = '') +
   scale_fill_brewer('', palette = 'Pastel1') +
   theme(legend.position = 'none')
 
-p02 <- br |>
-    group_by(Stagione) |> 
-  summarise(length=mean(Lunghezza.in.cm, na.rm = T)) |> 
-  ggplot(aes(Stagione, length)) +
+p2 <- br |>
+  ggplot(aes(Stagione, Lunghezza.in.cm)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Length (cm)', x = '', y = '') +
   scale_fill_brewer('', palette = 'Pastel1') +
   theme(legend.position = 'bottom')
 
-p03 <- br |>
-    group_by(Stagione) |> 
-  summarise(width=mean(Larghezza.in.cm, na.rm = T)) |> 
-    ggplot(aes(Stagione, width)) +
+p3 <- br |>
+  ggplot(aes(Stagione, Larghezza.in.cm)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Width (cm)', x = '', y = '') +
   scale_fill_brewer('', palette = 'Pastel1') +
   theme(legend.position = 'none')
 
-p01 + p02 + p03
+p1 + p2 + p3
 ```
 
 ### Confronti tra stagioni
