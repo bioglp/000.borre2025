@@ -1,6 +1,6 @@
 ---
 title: "Borre2025"
-date: 2026-05-05
+date: 2026-05-14
 format: 
   html:
     theme: cosmo
@@ -45,8 +45,10 @@ Il dataset ora comprende 2 variabili per le analisi tassonomiche: TaxonAnalisi1 
 #   filter(!is.na(SpeciePredata))
 # write.xlsx(br,'input/Borre2025.xlsx')
 
-br <- read.xlsx('../data/DatasetGufiAggiornato.xlsx', detectDates = T)
+br <- read.xlsx('data/DatasetGufiAggiornato.xlsx', detectDates = T)
 glimpse(br)
+br <- br |> mutate(across(where(is.character), str_squish))
+
 br <- br |>
   mutate(
     Stagione = factor(
@@ -62,15 +64,17 @@ br <- br |>
 Confronto il numero di prede x stagione
 
 ```{r}
-br |> 
-  group_by(Stagione, Progressivo.Borra) |> 
-  summarize(Prede=mean(Prede)) |> 
-  group_by(Stagione) |> 
-  summarize(mean=mean(Prede), sd=sd(Prede)) |> 
-  ggplot(aes(Stagione,mean))+
-    geom_pointrange(aes(ymin=mean-sd,ymax=mean+sd))+
-    labs(title = 'N medio prede per borra')+
-    stat_compare_means()
+nprede <- br |>
+  group_by(Stagione, Progressivo.Borra) |>
+  summarize(Prede = mean(Prede)) |>
+  group_by(Stagione) |>
+  summarize(mean = mean(Prede), sd = sd(Prede))
+nprede
+nprede |>
+  ggplot(aes(Stagione, mean)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) +
+  labs(title = 'N medio prede per borra') +
+  stat_compare_means()
 ```
 
 ## Differenze tra gli anni
@@ -80,7 +84,7 @@ Frequenza percentuale delle diverse tipologie di prede nel corso delle stagioni.
 df.y <- br |>
   group_by(year, Stagione, TaxonAnalisi1) |>
   summarise(n = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
+  #mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
   group_by(year, Stagione, TaxonAnalisi1) |>
   summarise(n = sum(n), .groups = "drop") |>
   group_by(year, Stagione) |>
@@ -92,7 +96,10 @@ df.y |>
   scale_y_continuous(labels = percent_format()) +
   facet_grid(~year) +
   labs(fill = '', x = '', y = '') +
-  theme(legend.position = 'top',axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  theme(
+    legend.position = 'top',
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
 ```
 
 Conclusione: ragionevolmente si può pensare che ci sia una somiglianza tra gli anni.
@@ -106,11 +113,14 @@ Eliminazione della variabile anno e considerazione del mese per la creazione di 
 df.m <- br |>
   group_by(month, TaxonAnalisi1) |>
   summarise(n = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
+  #mutate(TaxonAnalisi1 = if_else(n < 3, "Others", TaxonAnalisi1)) |>
   group_by(month, TaxonAnalisi1) |>
   summarise(n = sum(n), .groups = "drop") |>
   group_by(month) |>
   mutate(p = n / sum(n))
+
+# df.m |>
+#  pivot_wider(names_from = month, values_from = p)
 
 df.m |>
   ggplot(aes(as.factor(month), p, fill = TaxonAnalisi1)) +
@@ -122,7 +132,7 @@ df.m |>
 df.g <- br |>
   group_by(Stagione, TaxonAnalisi1) |>
   summarise(n = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
+  #mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
   group_by(Stagione, TaxonAnalisi1) |>
   summarise(n = sum(n), .groups = "drop") |>
   group_by(Stagione) |>
@@ -137,10 +147,10 @@ df.g |>
 
 # Livello tassonomico più basso
 df.t <- br |>
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
+  filter(TaxonAnalisi1 == 'Muridae' | TaxonAnalisi1 == 'Cricetidae') |>
   group_by(Stagione, TaxonAnalisi2) |>
   summarise(n = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi2 = if_else(n < 5, "Others", TaxonAnalisi2)) |>
+  #mutate(TaxonAnalisi2 = if_else(n < 5, "Others", TaxonAnalisi2)) |>
   group_by(Stagione, TaxonAnalisi2) |>
   summarise(n = sum(n), .groups = "drop") |>
   group_by(Stagione) |>
@@ -187,7 +197,9 @@ library(ggalluvial)
 df.alluv <- br |>
   group_by(Stagione, TaxonAnalisi1, TaxonAnalisi2) |>
   summarise(Prede = n(), .groups = "drop") |>
-  mutate(TaxonAnalisi2 = if_else(is.na(TaxonAnalisi2),'Others',TaxonAnalisi2)) |> 
+  mutate(
+    TaxonAnalisi2 = if_else(is.na(TaxonAnalisi2), 'Others', TaxonAnalisi2)
+  ) |>
   mutate(TaxonAnalisi2 = if_else(Prede < 5, "Others", TaxonAnalisi2)) |>
   group_by(TaxonAnalisi1, TaxonAnalisi2) |>
   mutate(Prede_tot = sum(Prede)) |>
@@ -217,27 +229,120 @@ ggplot(
 ## Differenze tra muridi e *Microtus*
 
 ```{r}
-br |> 
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
+br |>
+  filter(TaxonAnalisi1 == 'Muridae' | TaxonAnalisi1 == 'Cricetidae') |>
   group_by(Stagione, month, TaxonAnalisi1) |>
   summarise(n = n(), .groups = "drop") |>
-  ggplot(aes(Stagione, n, group=TaxonAnalisi1)) + 
-  geom_col(aes(fill=TaxonAnalisi1), position = 'dodge')+
-  labs(fill='')+
-  scale_fill_brewer(palette = 'Accent')+
+  ggplot(aes(Stagione, n, group = TaxonAnalisi1)) +
+  geom_col(aes(fill = TaxonAnalisi1), position = 'dodge') +
+  labs(fill = '') +
+  scale_fill_brewer(palette = 'Accent') +
   theme(legend.position = 'top')
 ```
 
 ```{r}
-br |> 
-  filter(TaxonAnalisi1=='Muridae' | TaxonAnalisi1=='Cricetidae') |> 
+br |>
+  filter(TaxonAnalisi1 == 'Muridae' | TaxonAnalisi1 == 'Cricetidae') |>
   group_by(Stagione, month, TaxonAnalisi1) |>
-  summarise(n = n(), .groups = "drop") |> 
-  ggplot(aes(as.factor(month), n, group=TaxonAnalisi1)) + 
-  geom_col(aes(fill=TaxonAnalisi1), position = 'dodge')+
-  labs(fill='', x='month')+
-  scale_fill_brewer(palette = 'Accent')+
+  summarise(n = n(), .groups = "drop") |>
+  ggplot(aes(as.factor(month), n, group = TaxonAnalisi1)) +
+  geom_col(aes(fill = TaxonAnalisi1), position = 'dodge') +
+  labs(fill = '', x = 'month') +
+  scale_fill_brewer(palette = 'Accent') +
   theme(legend.position = 'top')
+```
+
+## Terzo livello di analisi
+
+```{r}
+df.s <- br |>
+  filter(!is.na(Analysis)) |>
+  group_by(Stagione, TaxonAnalisi1, Analysis) |>
+  summarise(n = n(), .groups = "drop") |>
+  #mutate(TaxonAnalisi2 = if_else(n < 5, "Others", TaxonAnalisi2)) |>
+  group_by(Stagione, TaxonAnalisi1, Analysis) |>
+  summarise(n = sum(n), .groups = "drop") |>
+  group_by(Stagione) |>
+  mutate(p = n / sum(n))
+
+df.s |>
+  ggplot(aes(Stagione, p, fill = Analysis)) +
+  geom_col() +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '') +
+  facet_grid(~TaxonAnalisi1) +
+  theme(
+    legend.position = 'top',
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
+```
+
+## Diversity
+
+```{r}
+library(vegan)
+
+# Funzione per calcolare il Levins normalizzato (Bn)
+# 0 è uno specialista estremo, 1 è un generalista perfetto
+calc_levins_norm <- function(counts) {
+  p <- counts / sum(counts) # Calcolo proporzioni
+  B <- 1 / sum(p^2) # Levins originale
+  n <- length(p) # Numero di categorie (specie/risorse)
+  if (n <= 1) {
+    return(0)
+  }
+  Bn <- (B - 1) / (n - 1) # Normalizzazione (Feinsinger et al. 1981)
+  return(Bn)
+}
+
+# Numero di taxa per stagione
+br |>
+  count(Stagione, TaxonAnalisi1) |>
+  pivot_wider(values_from = n, names_from = Stagione)
+
+br |>
+  count(Stagione, TaxonAnalisi1) |>
+  filter(!is.na(TaxonAnalisi1)) |>
+  group_by(Stagione) %>%
+  summarise(
+    Ricchezza = n(),
+    Abbondanza_Totale = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Ricchezza),
+    Levins_Bn = calc_levins_norm(n)
+  )
+
+br |>
+  count(Stagione, TaxonAnalisi2) |>
+  pivot_wider(values_from = n, names_from = Stagione)
+br |>
+  count(Stagione, TaxonAnalisi2) |>
+  filter(!is.na(TaxonAnalisi2)) |>
+  group_by(Stagione) %>%
+  summarise(
+    Ricchezza = n(),
+    Abbondanza_Totale = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Ricchezza),
+    Levins_Bn = calc_levins_norm(n)
+  )
+
+br |>
+  filter(!is.na(Analysis)) |>
+  count(Stagione, Analysis) |>
+  pivot_wider(values_from = n, names_from = Stagione)
+
+br |>
+  count(Stagione, Analysis) |>
+  filter(!is.na(Analysis)) |>
+  group_by(Stagione) %>%
+  summarise(
+    Ricchezza = n(),
+    Abbondanza_Totale = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Ricchezza),
+    Levins_Bn = calc_levins_norm(n)
+  )
 ```
 
 
@@ -251,7 +356,6 @@ res
 ```
 
 Le differenze tra le stagioni sono statisticamente significative.
-
 
 ```{r geom_tile}
 df_res <- as.data.frame(as.table(res$stdres))
@@ -285,17 +389,21 @@ Analisi biometrica su:
 
 ## Dato mensile
 ```{r int-est-mesi, fig.width=11, fig.heigth=7}
-brB <- distinct(br, 
-Progressivo.Borra, 
-month, Stagione,
-Data, Peso.in.grammi,
-Lunghezza.in.cm,
-Larghezza.in.cm) |> 
-  mutate(month=as.factor(month))
+brB <- distinct(
+  br,
+  Progressivo.Borra,
+  month,
+  Stagione,
+  Data,
+  Peso.in.grammi,
+  Lunghezza.in.cm,
+  Larghezza.in.cm
+) |>
+  mutate(month = as.factor(month))
 
 p01 <- brB |>
-  group_by(month) |> 
-  summarise(weight=mean(Peso.in.grammi, na.rm = T)) |> 
+  group_by(month) |>
+  summarise(weight = mean(Peso.in.grammi, na.rm = T)) |>
   ggplot(aes(month, weight)) +
   geom_col() +
   coord_polar() +
@@ -304,8 +412,8 @@ p01 <- brB |>
   theme(legend.position = 'none')
 
 p02 <- br |>
-    group_by(month) |> 
-  summarise(length=mean(Lunghezza.in.cm, na.rm = T)) |> 
+  group_by(month) |>
+  summarise(length = mean(Lunghezza.in.cm, na.rm = T)) |>
   ggplot(aes(month, length)) +
   geom_col() +
   coord_polar() +
@@ -314,9 +422,9 @@ p02 <- br |>
   theme(legend.position = 'bottom')
 
 p03 <- br |>
-    group_by(month) |> 
-  summarise(width=mean(Larghezza.in.cm, na.rm = T)) |> 
-    ggplot(aes(month, width)) +
+  group_by(month) |>
+  summarise(width = mean(Larghezza.in.cm, na.rm = T)) |>
+  ggplot(aes(month, width)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Width (cm)', x = '', y = '') +
@@ -329,8 +437,8 @@ p01 + p02 + p03
 ## Dato stagionale
 ```{r int-est-Stag, fig.width=11, fig.heigth=7}
 p01 <- brB |>
-  group_by(Stagione) |> 
-  summarise(weight=mean(Peso.in.grammi, na.rm = T)) |> 
+  group_by(Stagione) |>
+  summarise(weight = mean(Peso.in.grammi, na.rm = T)) |>
   ggplot(aes(Stagione, weight)) +
   geom_col() +
   coord_polar() +
@@ -339,8 +447,8 @@ p01 <- brB |>
   theme(legend.position = 'none')
 
 p02 <- br |>
-    group_by(Stagione) |> 
-  summarise(length=mean(Lunghezza.in.cm, na.rm = T)) |> 
+  group_by(Stagione) |>
+  summarise(length = mean(Lunghezza.in.cm, na.rm = T)) |>
   ggplot(aes(Stagione, length)) +
   geom_col() +
   coord_polar() +
@@ -349,9 +457,9 @@ p02 <- br |>
   theme(legend.position = 'bottom')
 
 p03 <- br |>
-    group_by(Stagione) |> 
-  summarise(width=mean(Larghezza.in.cm, na.rm = T)) |> 
-    ggplot(aes(Stagione, width)) +
+  group_by(Stagione) |>
+  summarise(width = mean(Larghezza.in.cm, na.rm = T)) |>
+  ggplot(aes(Stagione, width)) +
   geom_col() +
   coord_polar() +
   labs(title = 'Width (cm)', x = '', y = '') +

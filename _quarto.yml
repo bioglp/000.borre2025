@@ -1,0 +1,6 @@
+project:
+  output-dir: reports
+  execute-dir: project
+
+render: 
+  - script/000.borre2025.qmd

@@ -1,4 +1,0 @@
-project:
-  type: manuscript # Project type (default, website, book, or manuscript)
-  output-dir: report
-  execute-dir: project
