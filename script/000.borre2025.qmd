@@ -266,6 +266,26 @@ df.s <- br |>
   mutate(p = n / sum(n))
 
 df.s |>
+  pivot_wider(id_cols = Analysis, names_from = Stagione, values_from = n) |>
+  print()
+
+df.s |>
+  ggplot(aes(Stagione, p, fill = Analysis)) +
+  geom_col() +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '') +
+  facet_grid(~TaxonAnalisi1) +
+  theme(
+    legend.position = 'top',
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
+
+df.s |>
+  filter(
+    TaxonAnalisi1 != 'Aves' &
+      TaxonAnalisi1 != 'Gliridae' &
+      TaxonAnalisi1 != 'Chiroptera'
+  ) |>
   ggplot(aes(Stagione, p, fill = Analysis)) +
   geom_col() +
   scale_y_continuous(labels = percent_format()) +
