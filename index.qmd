@@ -10,7 +10,10 @@ css: data/css/bujo01.css
 - [ouput](https://bioglp.github.io/000.borre2025/reports/000.borre2025.html)
 
 - NEXT
-    - definizione analisi per paper
+    - 
+
+- 2026-05-16
+    - codici per manoscritto
 
 - 2026-05-14
     - integrazione nuove elaborazioni
