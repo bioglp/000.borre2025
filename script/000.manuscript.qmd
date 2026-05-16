@@ -53,16 +53,16 @@ br <- br %>%
         'Chiroptera',
         'Gliridae',
         'Insecta',
+        'Rodentia',
         'Soricomorpha',
-        'Muridae',
         'Cricetidae',
-        'Rodentia'
+        'Muridae'
       )
     )
   )
 glimpse(br)
 
-muri = '#E31A1C'
+muri = '#FF7F00'
 cric = '#FDBF6F'
 ```
 
@@ -87,6 +87,7 @@ br %>%
   get_summary_stats() %>%
   select(variable, Season, n, min, max, mean, sd) %>%
   arrange(variable) %>%
+  #write.xlsx('output/tables/table1.xlsx')
   knitr::kable()
 ```
 
@@ -292,6 +293,7 @@ br %>%
     Evenness = Shannon / log(Richness),
     Levins_Bn = calc_levins_norm(n)
   ) %>%
+  # write.xlsx('output/tables/table2.xlsx')
   knitr::kable(digits = 2)
 ```
 
