@@ -122,7 +122,7 @@ df.m <- br |>
 # df.m |>
 #  pivot_wider(names_from = month, values_from = p)
 
-df.m |>
+p1 <- df.m |>
   ggplot(aes(as.factor(month), p, fill = TaxonAnalisi1)) +
   geom_col() +
   scale_y_continuous(labels = percent_format()) +
@@ -130,16 +130,16 @@ df.m |>
   theme(legend.position = 'top')
 
 df.g <- br |>
-  group_by(Stagione, TaxonAnalisi1) |>
+  group_by(month, TaxonAnalisi1) |>
   summarise(n = n(), .groups = "drop") |>
   #mutate(TaxonAnalisi1 = if_else(n < 5, "Others", TaxonAnalisi1)) |>
-  group_by(Stagione, TaxonAnalisi1) |>
+  group_by(month, TaxonAnalisi1) |>
   summarise(n = sum(n), .groups = "drop") |>
-  group_by(Stagione) |>
+  group_by(month) |>
   mutate(p = n / sum(n))
 
-df.g |>
-  ggplot(aes(Stagione, p, fill = TaxonAnalisi1)) +
+p2 <- df.g |>
+  ggplot(aes(as.factor(month), p, fill = TaxonAnalisi1)) +
   geom_col() +
   scale_y_continuous(labels = percent_format()) +
   labs(x = '', y = '', fill = '') +
@@ -148,16 +148,16 @@ df.g |>
 # Livello tassonomico più basso
 df.t <- br |>
   filter(TaxonAnalisi1 == 'Muridae' | TaxonAnalisi1 == 'Cricetidae') |>
-  group_by(Stagione, TaxonAnalisi2) |>
+  group_by(as.factor(month), TaxonAnalisi2) |>
   summarise(n = n(), .groups = "drop") |>
   #mutate(TaxonAnalisi2 = if_else(n < 5, "Others", TaxonAnalisi2)) |>
-  group_by(Stagione, TaxonAnalisi2) |>
+  group_by(as.factor(month), TaxonAnalisi2) |>
   summarise(n = sum(n), .groups = "drop") |>
-  group_by(Stagione) |>
+  group_by(as.factor(month)) |>
   mutate(p = n / sum(n))
 
-df.t |>
-  ggplot(aes(Stagione, p, fill = TaxonAnalisi2)) +
+p3 <- df.t |>
+  ggplot(aes(, p, fill = TaxonAnalisi2)) +
   geom_col() +
   scale_y_continuous(labels = percent_format()) +
   labs(x = '', y = '', fill = '') +

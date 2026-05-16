@@ -1,0 +1,338 @@
+---
+title: "Borre2025"
+date: 2026-05-15
+format: 
+  html:
+    theme: cosmo
+    code-fold: true
+    toc: true
+editor_options: 
+  chunk_output_type: console
+execute:
+  echo: false
+  warning: false
+---
+
+
+```{r}
+library(pacman)
+p_load(
+  tidyverse,
+  stargazer,
+  skimr,
+  janitor,
+  lubridate,
+  here,
+  scales,
+  ggpubr,
+  rstatix,
+  openxlsx,
+  gt,
+  patchwork
+)
+theme_set(theme_bw(base_size = 14))
+# -------------------------------------
+```
+
+```{r}
+br <- read.xlsx('data/DatasetGufiAggiornato.xlsx', detectDates = T)
+br <- br %>% mutate(across(where(is.character), str_squish))
+br$month <- as.factor(month(br$Date, label = T))
+br <- br %>%
+  mutate(
+    Season = factor(Season),
+    Season = fct_relevel(Season, c('Winter', 'Spring', 'Summer', 'Autumn'))
+  )
+br <- br %>%
+  mutate(
+    TaxonAnalisi1 = factor(TaxonAnalisi1),
+    TaxonAnalisi1 = fct_relevel(
+      TaxonAnalisi1,
+      c(
+        'Aves',
+        'Chiroptera',
+        'Gliridae',
+        'Insecta',
+        'Soricomorpha',
+        'Muridae',
+        'Cricetidae',
+        'Rodentia'
+      )
+    )
+  )
+glimpse(br)
+
+muri = '#E31A1C'
+cric = '#FDBF6F'
+```
+
+
+# Analisi dieta
+
+## analisi descrittiva borre 
+```{r}
+br %>%
+  distinct(Progressivo.Borra, Season, Length, Width) %>%
+  filter(!is.na(Length)) %>%
+  select(Season, Length, Width) %>%
+  group_by(Season) %>%
+  get_summary_stats() %>%
+  arrange(variable)
+
+br %>%
+  distinct(Progressivo.Borra, Season, Length, Width) %>%
+  filter(!is.na(Length)) %>%
+  select(Season, Length, Width) %>%
+  group_by(Season) %>%
+  get_summary_stats() %>%
+  select(variable, Season, n, min, max, mean, sd) %>%
+  arrange(variable) %>%
+  knitr::kable()
+```
+
+## Prede
+
+### N prede
+```{r}
+nprede <- br %>%
+  distinct(Progressivo.Borra, Season, Npreys)
+
+nprede %>%
+  group_by(Season) %>%
+  summarize(mean = mean(Npreys), sd = sd(Npreys))
+
+kruskal_test(nprede, Npreys ~ Season)
+```
+Nessuna differenza stagionale per numero di prede. In media pari 2.1±0.9
+
+### Relazione nprede e ricchezza
+
+```{r}
+prede <- br %>%
+  select(Progressivo.Borra, TaxonAnalisi1) %>%
+  group_by(Progressivo.Borra) %>%
+  count(TaxonAnalisi1) %>%
+  mutate(p = n / sum(n), tot = as.factor(sum(n))) %>%
+  ungroup()
+
+report_biodiversita <- prede %>%
+  group_by(Progressivo.Borra, tot) %>%
+  summarise(
+    Shannon_Borra = -sum(p * log(p)),
+    Ricchezza_Borra = n_distinct(TaxonAnalisi1),
+    .groups = "drop"
+  ) %>%
+
+  group_by(tot) %>%
+  summarise(
+    Numero_Borre = n(),
+    Shannon = mean(Shannon_Borra),
+    No_Species = mean(Ricchezza_Borra),
+    Dev_Species = sd(Ricchezza_Borra),
+    .groups = "drop"
+  )
+
+# Visualizza la tabella finale
+print(report_biodiversita)
+
+dati_bolle <- prede %>%
+  mutate(
+    Percentuale_Dieta = round(p * 100),
+    tot = factor(tot)
+  ) %>%
+  group_by(tot, TaxonAnalisi1, Percentuale_Dieta) %>%
+  summarise(Numero_Borre = n(), .groups = "drop")
+
+ggplot(
+  dati_bolle,
+  aes(
+    x = tot,
+    y = Percentuale_Dieta,
+    size = Numero_Borre,
+    color = TaxonAnalisi1
+  )
+) +
+  geom_point(alpha = 0.7) +
+  facet_wrap(~TaxonAnalisi1, ncol = 3) +
+  scale_size_continuous(range = c(2, 12)) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%")
+  ) +
+  theme_bw() +
+  theme(
+    strip.background = element_rect(fill = "#f0f0f0"),
+    strip.text = element_text(face = "bold", size = 12),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 10),
+    legend.position = 'none'
+  ) +
+  labs(
+    x = "No. Preys",
+    y = "",
+    size = "Numero di Borre con questo pattern:",
+    color = "Taxon"
+  ) +
+  scale_color_brewer(palette = 'Paired')
+```
+
+Non metterei il grafico ma un cenno al fatto, come suggeriva Livia, che all'aumentare del numero di prede per borra aumenta anche la ricchezza in specie trovate si potrebbe inserire.
+
+## figura 1
+
+```{r}
+df.m <- br %>%
+  group_by(month, TaxonAnalisi1) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(month) %>%
+  mutate(p = n / sum(n))
+df.m %>%
+  pivot_wider(id_cols = TaxonAnalisi1, names_from = 'month', values_from = 'p')
+
+p1 <- df.m %>%
+  ggplot(aes(as.factor(month), p, fill = TaxonAnalisi1)) +
+  geom_col(alpha = 0.85) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '', tag = 'a)') +
+  theme(legend.position = 'top') +
+  scale_fill_brewer(palette = 'Paired')
+
+df.m <- br %>%
+  group_by(Season, TaxonAnalisi1) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Season) %>%
+  mutate(p = n / sum(n))
+df.m %>%
+  pivot_wider(id_cols = TaxonAnalisi1, names_from = 'Season', values_from = 'p')
+
+p2 <- df.m %>%
+  ggplot(aes(as.factor(Season), p, fill = TaxonAnalisi1)) +
+  geom_col(alpha = 0.85) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '', tag = 'c)') +
+  theme(legend.position = 'none') +
+  scale_fill_brewer(palette = 'Paired')
+
+df.mu <- br %>%
+  filter(TaxonAnalisi2 == 'Apodemus' | TaxonAnalisi2 == 'Microtus') %>%
+  group_by(month, TaxonAnalisi2) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(month) %>%
+  mutate(p = n / sum(n))
+
+df.mu %>%
+  pivot_wider(id_cols = TaxonAnalisi2, names_from = 'month', values_from = 'p')
+
+p3 <- df.mu %>%
+  ggplot(aes(as.factor(month), p, fill = TaxonAnalisi2)) +
+  geom_col(alpha = 0.85) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '', tag = 'b)') +
+  theme(legend.position = 'top', legend.text = element_text(face = "italic")) +
+  scale_fill_manual(values = c(muri, cric))
+
+df.mu <- br %>%
+  filter(TaxonAnalisi2 == 'Apodemus' | TaxonAnalisi2 == 'Microtus') %>%
+  group_by(Season, TaxonAnalisi2) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Season) %>%
+  mutate(p = n / sum(n))
+
+df.mu %>%
+  pivot_wider(id_cols = TaxonAnalisi2, names_from = 'Season', values_from = 'p')
+
+p4 <- df.mu %>%
+  ggplot(aes(as.factor(Season), p, fill = TaxonAnalisi2)) +
+  geom_col(alpha = 0.85) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = '', y = '', fill = '', tag = 'd)') +
+  theme(legend.position = 'none') +
+  scale_fill_manual(values = c(muri, cric))
+```
+
+```{r}
+#| title: dd
+(p1 + p3) / (p2 + p4)
+ggsave('output/figures/figure1.pdf', width = 12, height = 9)
+```
+
+## diversity
+Levin=0 è uno specialista estremo, 1 è un generalista perfetto
+
+### Taxon 1
+```{r}
+library(vegan)
+source('R/levin.r')
+
+# test <- read.csv('data/prede.csv')
+# test <- test %>%
+#   pivot_longer(names_to = 'Season', values_to = 'n', cols = c(Primavera:Autunno))
+# test %>%
+#   group_by(Season) %>%
+#   summarise(
+#     Richness = n(),
+#     Abundance = sum(n),
+#     Shannon = diversity(n, index = "shannon"),
+#     Evenness = Shannon / log(Richness),
+#     Levins_Bn = calc_levins_norm(n)
+#   )
+
+# Numero di taxa per stagione
+br %>%
+  count(Season, TaxonAnalisi1) %>%
+  pivot_wider(values_from = n, names_from = Season)
+
+br %>%
+  count(Season, TaxonAnalisi1) %>%
+  filter(!is.na(TaxonAnalisi1)) %>%
+  group_by(Season) %>%
+  summarise(
+    Richness = n(),
+    Abundance = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Richness),
+    Levins_Bn = calc_levins_norm(n)
+  ) %>%
+  knitr::kable(digits = 2)
+```
+
+Anche in primavera quando aumenta l'offerta e la varietà di prede aumenta mantiene un livello di specializzazione, senza diventare un vero generalista.
+
+### Taxon 2
+```{r}
+br %>%
+  count(Season, TaxonAnalisi2) %>%
+  pivot_wider(values_from = n, names_from = Season)
+
+br %>%
+  count(Season, TaxonAnalisi2) %>%
+  filter(!is.na(TaxonAnalisi2)) %>%
+  group_by(Season) %>%
+  summarise(
+    Ricchezza = n(),
+    Abbondanza_Totale = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Ricchezza),
+    Levins_Bn = calc_levins_norm(n)
+  )
+```
+
+### Taxon
+```{r}
+br %>%
+  filter(!is.na(Taxon)) %>%
+  count(Season, Taxon) %>%
+  pivot_wider(values_from = n, names_from = Season)
+
+br %>%
+  count(Season, Taxon) %>%
+  filter(!is.na(Taxon)) %>%
+  group_by(Season) %>%
+  summarise(
+    Ricchezza = n(),
+    Abbondanza_Totale = sum(n),
+    Shannon = diversity(n, index = "shannon"),
+    Evenness = Shannon / log(Ricchezza),
+    Levins_Bn = calc_levins_norm(n)
+  )
+```
+
