@@ -64,7 +64,9 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#taxon-1" id="toc-taxon-1" class="nav-link" data-scroll-target="#taxon-1">Taxon 1</a></li>
   <li><a href="#taxon-2" id="toc-taxon-2" class="nav-link" data-scroll-target="#taxon-2">Taxon 2</a></li>
   <li><a href="#taxon" id="toc-taxon" class="nav-link" data-scroll-target="#taxon">Taxon</a></li>
+  <li><a href="#lower-taxonomic-level" id="toc-lower-taxonomic-level" class="nav-link" data-scroll-target="#lower-taxonomic-level">lower taxonomic level</a></li>
   </ul></li>
+  <li><a href="#simper" id="toc-simper" class="nav-link" data-scroll-target="#simper">simper</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -99,16 +101,18 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 1,117
-Columns: 10
-$ Progressivo.Borra &lt;chr&gt; "BEST113", "BEST113", "BEST47", "BEST47", "BEST48", …
-$ Season            &lt;fct&gt; Autumn, Autumn, Summer, Summer, Summer, Summer, Summ…
+Columns: 12
+$ n                 &lt;dbl&gt; 2, 3, 4, 12, 13, 14, 15, 19, 21, 22, 26, 27, 28, 29,…
+$ Progressivo.Borra &lt;chr&gt; "BEST113", "BEST47", "BEST47", "BEST50", "BEST50", "…
+$ Season            &lt;fct&gt; Autumn, Summer, Summer, Summer, Summer, Summer, Summ…
 $ Date              &lt;date&gt; 2024-09-30, 2024-09-30, 2024-09-30, 2024-09-30, 202…
-$ Length            &lt;dbl&gt; NA, NA, 3.69, 3.69, 5.91, 5.91, 5.91, 5.91, 3.40, 3.…
-$ Width             &lt;dbl&gt; NA, NA, 3.22, 3.22, 1.76, 1.76, 1.76, 1.76, 2.10, 2.…
-$ Npreys            &lt;dbl&gt; 2, 2, 2, 2, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 1…
-$ TaxonAnalisi1     &lt;fct&gt; Muridae, Aves, Aves, Aves, Muridae, Muridae, Muridae…
-$ TaxonAnalisi2     &lt;chr&gt; "Apodemus", NA, NA, NA, "Apodemus", "Apodemus", "Apo…
-$ Taxon             &lt;chr&gt; "A. sylvaticus", NA, NA, NA, "A. sylvaticus", "A. sy…
+$ Length            &lt;dbl&gt; NA, 3.69, 3.69, NA, NA, 4.94, 4.94, 3.37, 2.72, 2.72…
+$ Width             &lt;dbl&gt; NA, 3.22, 3.22, NA, NA, 2.88, 2.88, 2.19, 1.95, 1.95…
+$ Npreys            &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 1, 1, 1, 2, 2, 3…
+$ TaxonAnalisi1     &lt;fct&gt; Aves, Aves, Aves, Aves, Aves, Aves, Rodentia, Murida…
+$ TaxonAnalisi2     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, "Apodemus", NA, NA, "Apo…
+$ Taxon             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ prey              &lt;chr&gt; "Aves", "Aves", "Aves", "Aves", "Aves", "Aves", "Rod…
 $ month             &lt;ord&gt; Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Se…</code></pre>
 </div>
 </div>
@@ -325,6 +329,13 @@ $ month             &lt;ord&gt; Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep
 </figure>
 </div>
 </div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="000.manuscript_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="diversity" class="level2">
@@ -352,7 +363,7 @@ $ month             &lt;ord&gt; Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep
 <tr class="header">
 <th style="text-align: left;">Season</th>
 <th style="text-align: right;">Richness</th>
-<th style="text-align: right;">Abundance</th>
+<th style="text-align: right;">Total_abundance</th>
 <th style="text-align: right;">Shannon</th>
 <th style="text-align: right;">Evenness</th>
 <th style="text-align: right;">Levins_Bn</th>
@@ -423,14 +434,53 @@ $ month             &lt;ord&gt; Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep
 17 Erithacus         NA     NA     NA      1
 18 Sturnus           NA     NA     NA      1</code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 6
-  Season Ricchezza Abbondanza_Totale Shannon Evenness Levins_Bn
-  &lt;fct&gt;      &lt;int&gt;             &lt;int&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-1 Winter         9               252   0.999    0.455     0.136
-2 Spring        14               139   1.31     0.498     0.127
-3 Summer        11               214   1.32     0.551     0.148
-4 Autumn        11               227   1.14     0.477     0.137</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Season</th>
+<th style="text-align: right;">Richness</th>
+<th style="text-align: right;">Total_abundance</th>
+<th style="text-align: right;">Shannon</th>
+<th style="text-align: right;">Evenness</th>
+<th style="text-align: right;">Levins_Bn</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Winter</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">252</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">0.14</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">139</td>
+<td style="text-align: right;">1.31</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Summer</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">214</td>
+<td style="text-align: right;">1.32</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">0.15</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Autumn</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">227</td>
+<td style="text-align: right;">1.14</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.14</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
@@ -456,17 +506,228 @@ $ month             &lt;ord&gt; Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep, Sep
 13 E. rubecula         NA     NA     NA      1
 14 S. vulgaris         NA     NA     NA      1</code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 6
-  Season Ricchezza Abbondanza_Totale Shannon Evenness Levins_Bn
-  &lt;fct&gt;      &lt;int&gt;             &lt;int&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-1 Winter         6               213   0.943    0.526     0.231
-2 Spring        10               117   1.20     0.522     0.172
-3 Summer         8               154   1.18     0.569     0.202
-4 Autumn        10               199   1.11     0.481     0.155</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Season</th>
+<th style="text-align: right;">Richness</th>
+<th style="text-align: right;">Total_abundance</th>
+<th style="text-align: right;">Shannon</th>
+<th style="text-align: right;">Evenness</th>
+<th style="text-align: right;">Levins_Bn</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Winter</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">213</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.23</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">117</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">0.52</td>
+<td style="text-align: right;">0.17</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Summer</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">154</td>
+<td style="text-align: right;">1.18</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">0.20</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Autumn</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">199</td>
+<td style="text-align: right;">1.11</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.16</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
+<section id="lower-taxonomic-level" class="level3">
+<h3 class="anchored" data-anchor-id="lower-taxonomic-level">lower taxonomic level</h3>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 18 × 5
+   prey            Winter Spring Summer Autumn
+   &lt;chr&gt;            &lt;int&gt;  &lt;int&gt;  &lt;int&gt;  &lt;int&gt;
+ 1 A. sylvaticus      125     48     90    101
+ 2 Aves                19     25     67     32
+ 3 C. carduelis         1      1     10      5
+ 4 F. coelebs           2      1      1     NA
+ 5 Insecta              2      2      7      3
+ 6 M. musculus          9      4      9      5
+ 7 M. savii            73     55     39     79
+ 8 Muridae             33     17     39     24
+ 9 R. rattus            3      1     NA      1
+10 Rodentia            63     25     29     47
+11 C. suaveolens       NA      3     NA      4
+12 H. savi             NA      2     NA     NA
+13 M. avellanarius     NA      1     NA     NA
+14 S. etruscus         NA      1      2      1
+15 C. leucodon         NA     NA      2      1
+16 R. norvegicus       NA     NA      1     NA
+17 E. rubecula         NA     NA     NA      1
+18 S. vulgaris         NA     NA     NA      1</code></pre>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Season</th>
+<th style="text-align: right;">Richness</th>
+<th style="text-align: right;">Total_abundance</th>
+<th style="text-align: right;">Shannon</th>
+<th style="text-align: right;">Evenness</th>
+<th style="text-align: right;">Levins_Bn</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Winter</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">330</td>
+<td style="text-align: right;">1.63</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">0.35</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">186</td>
+<td style="text-align: right;">1.86</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: right;">0.31</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Summer</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">296</td>
+<td style="text-align: right;">1.88</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.39</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Autumn</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">305</td>
+<td style="text-align: right;">1.77</td>
+<td style="text-align: right;">0.67</td>
+<td style="text-align: right;">0.28</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="simper" class="level2">
+<h2 class="anchored" data-anchor-id="simper">simper</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Contrast: Winter_Spring 
+
+              average       sd    ratio      ava      avb cumsum     p  
+Muridae       0.19662  0.10550  1.86360 56.67000 24.00000  0.583 0.054 .
+Rodentia      0.06733  0.03817  1.76410 21.00000  9.50000  0.783 0.100 .
+Cricetidae    0.03636  0.01935  1.87880 24.33000 20.50000  0.891 0.888  
+Aves          0.01603  0.01043  1.53690  7.33000  6.00000  0.938 0.989  
+Soricomorpha  0.00913  0.00432  2.11080  0.00000  1.50000  0.965 0.313  
+Chiroptera    0.00526  0.00579  0.90880  0.00000  1.00000  0.981 0.148  
+Insecta       0.00381  0.00303  1.25890  0.67000  0.00000  0.992 0.865  
+Gliridae      0.00263  0.00289  0.90880  0.00000  0.50000  1.000 0.148  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Contrast: Winter_Summer 
+
+              average       sd    ratio      ava      avb cumsum     p  
+Muridae       0.13920  0.05864  2.37380 56.67000 40.50000  0.378 0.377  
+Aves          0.07791  0.02835  2.74800  7.33000 23.50000  0.589 0.064 .
+Rodentia      0.06971  0.03808  1.83040 21.00000  8.75000  0.778 0.036 *
+Cricetidae    0.06784  0.04379  1.54910 24.33000 13.25000  0.962 0.145  
+Insecta       0.00842  0.00727  1.15850  0.67000  2.25000  0.985 0.454  
+Soricomorpha  0.00565  0.00412  1.37060  0.00000  1.25000  1.000 0.896  
+Chiroptera    0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA  
+Gliridae      0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Contrast: Winter_Autumn 
+
+              average       sd    ratio      ava      avb cumsum     p
+Muridae       0.10297  0.09585  1.07420 56.67000 43.33000  0.454 0.833
+Rodentia      0.04807  0.04355  1.10370 21.00000 15.67000  0.666 0.596
+Cricetidae    0.03416  0.03026  1.12910 24.33000 26.33000  0.816 0.959
+Aves          0.02969  0.01934  1.53510  7.33000 12.67000  0.947 0.972
+Soricomorpha  0.00833  0.00699  1.19250  0.00000  2.00000  0.984 0.377
+Insecta       0.00368  0.00309  1.19400  0.67000  1.00000  1.000 0.956
+Chiroptera    0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA
+Gliridae      0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA
+
+Contrast: Spring_Summer 
+
+              average       sd    ratio      ava      avb cumsum     p   
+Muridae       0.13544  0.09418  1.43800 24.00000 40.50000  0.355 0.416   
+Aves          0.11332  0.03369  3.36300  6.00000 23.50000  0.653 0.004 **
+Cricetidae    0.06971  0.03819  1.82500 20.50000 13.25000  0.836 0.173   
+Rodentia      0.03048  0.01750  1.74100  9.50000  8.75000  0.915 0.969   
+Insecta       0.01602  0.01007  1.59000  0.00000  2.25000  0.957 0.022 * 
+Soricomorpha  0.00699  0.00575  1.21600  1.50000  1.25000  0.976 0.637   
+Chiroptera    0.00615  0.00681  0.90300  1.00000  0.00000  0.992 0.067 . 
+Gliridae      0.00308  0.00341  0.90300  0.50000  0.00000  1.000 0.067 . 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Contrast: Spring_Autumn 
+
+              average       sd    ratio      ava      avb cumsum     p
+Muridae       0.14543  0.08466  1.71780 24.00000 43.33000  0.470 0.362
+Rodentia      0.05503  0.03057  1.80020  9.50000 15.67000  0.647 0.371
+Cricetidae    0.04758  0.01900  2.50410 20.50000 26.33000  0.801 0.725
+Aves          0.03798  0.02880  1.31910  6.00000 12.67000  0.924 0.865
+Soricomorpha  0.00975  0.00734  1.32820  1.50000  2.00000  0.955 0.200
+Chiroptera    0.00578  0.00668  0.86540  1.00000  0.00000  0.974 0.102
+Insecta       0.00521  0.00451  1.15660  0.00000  1.00000  0.991 0.710
+Gliridae      0.00289  0.00334  0.86540  0.50000  0.00000  1.000 0.102
+
+Contrast: Summer_Autumn 
+
+              average       sd    ratio      ava      avb cumsum     p  
+Muridae       0.11801  0.07208  1.63720 40.50000 43.33000  0.357 0.728  
+Cricetidae    0.07923  0.04203  1.88530 13.25000 26.33000  0.597 0.039 *
+Aves          0.06583  0.04982  1.32130 23.50000 12.67000  0.796 0.254  
+Rodentia      0.04896  0.04023  1.21700  8.75000 15.67000  0.945 0.557  
+Insecta       0.00918  0.00975  0.94100  2.25000  1.00000  0.972 0.356  
+Soricomorpha  0.00914  0.00578  1.57970  1.25000  2.00000  1.000 0.184  
+Chiroptera    0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA  
+Gliridae      0.00000  0.00000      NaN  0.00000  0.00000  1.000    NA  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Permutation: free
+Number of permutations: 999</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="000.manuscript_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
 </section>
 

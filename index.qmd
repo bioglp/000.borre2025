@@ -10,7 +10,13 @@ css: data/css/bujo01.css
 - [ouput](https://bioglp.github.io/000.borre2025/reports/000.borre2025.html)
 
 - NEXT
-    - 
+
+- 2026-05-29 - fatto
+    
+    1-Invertiremmo il pannello b con il pannello c in modo da avere a e b che si riferiscono ai taxa in genrale per mesi (a) e stagioni (b) e poi c e d che si riferiscono a Apodemus e Microtus per mesi e stagioni, rispettivamente. Già che ci siamo ti chiederemmo anche di dare a Apodemus e Microtus dei colori diversi (tipo giallo e viola) in modo da differenziarli dai grafici in a e b.
+    2-Questo grafico a bolle a noi piacerebbe molto dal punto di vista grafico ma non lo abbiamo compreso bene, pensi che inserendo una spiegazioni possa essere utile aggiungerlo al lavoro? Perchè è una rappresentazione particolare che in genere (e io personalmente) non si vede nei lavori, sarebbe carino secondo noi metterlo. Però andrebbe corredato da una spiegazione, magari anche solo in didascalia.
+    3-In questo nuovo link non ci sono le analisi del confronto della dieta nelle quattro stagioni (chi-sq) e l'analisi delle corrispondenze. Possiamo tenere buoni i valori del link precedente oppure pensi che sia meglio ricomputarle? Avevamo detto che per l'analisi delle corrispondenze non avremmo messo il grafico, ma dato che le due dimensioni spiegavano praticamente quasi il 95% della varianza potremmo almeno fare un accenno a quello nel manoscritto e scrivere qualcosa senza inserire il grafico.
+    4-Per le analisi della diversità, quale tabella conviene utilizzare? Da una parte sarebbe buono usare quella con i taxon identificati a livello di specie, dall'altra facendo così si perdono i dati identificati a livello meno specifico. È possibile, secondo te, rifare l'analisi includendo tutti i dati delle prede identificate a livello di genere/specie insieme a quelli identificati per famiglia?
 
 - 2026-05-16
     - codici per manoscritto
